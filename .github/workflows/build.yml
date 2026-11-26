@@ -1,8 +1,9 @@
 name: SonarQube
 on:
+  workflow_dispatch:
   push:
     branches:
-      - master
+      - develop
   pull_request:
     types: [opened, synchronize, reopened]
 jobs:
@@ -12,10 +13,13 @@ jobs:
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
         with:
-          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
-      # This step should build, test and generate coverage reports
-      # - name: Build and test
-      #   run: <build + test + generate coverage reports>
+          fetch-depth: 0
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - name: Build
+        run: mvn -B -DskipTests -f java/mtsj/pom.xml package
       - name: Cache SonarQube packages
         uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
         with:
@@ -30,3 +34,6 @@ jobs:
           args: >
             -Dsonar.organization=my-test24
             -Dsonar.projectKey=my-test24_my-thai-star
+            -Dsonar.projectBaseDir=java/mtsj
+            -Dsonar.sources=api/src/main/java,core/src/main/java
+            -Dsonar.java.binaries=api/target/classes,core/target/classes
